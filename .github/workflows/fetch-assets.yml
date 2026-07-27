@@ -36,17 +36,23 @@ jobs:
           # hero: dense keyframes (g=4) so scroll-scrub seeks are instant
           ffmpeg -y -i /tmp/raw/hero.mp4 -an -c:v libx264 -preset slow -crf 21 \
             -g 4 -keyint_min 4 -pix_fmt yuv420p -movflags +faststart assets/video/hero.mp4
+          ffmpeg -y -i /tmp/raw/hero.mp4 -an -c:v libvpx-vp9 -crf 32 -b:v 0 \
+            -g 4 -row-mt 1 -cpu-used 3 -pix_fmt yuv420p assets/video/hero.webm
           # work / team: ordinary playback encodes
           ffmpeg -y -i /tmp/raw/work.mp4 -an -c:v libx264 -preset slow -crf 23 \
             -pix_fmt yuv420p -movflags +faststart assets/video/work.mp4
+          ffmpeg -y -i /tmp/raw/work.mp4 -an -c:v libvpx-vp9 -crf 34 -b:v 0 \
+            -row-mt 1 -cpu-used 3 -pix_fmt yuv420p assets/video/work.webm
           ffmpeg -y -i /tmp/raw/team.mp4 -an -c:v libx264 -preset slow -crf 23 \
             -pix_fmt yuv420p -movflags +faststart assets/video/team.mp4
+          ffmpeg -y -i /tmp/raw/team.mp4 -an -c:v libvpx-vp9 -crf 34 -b:v 0 \
+            -row-mt 1 -cpu-used 3 -pix_fmt yuv420p assets/video/team.webm
           ls -la assets/video/
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/video/*.mp4
-          git commit -m "Add re-encoded Seedance 2.0 clips (hero scrub GOP=4)"
+          git add assets/video/
+          git diff --cached --quiet || git commit -m "Add re-encoded Seedance 2.0 clips (mp4 + webm, hero scrub GOP=4)"
           git push
