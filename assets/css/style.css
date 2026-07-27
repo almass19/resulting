@@ -240,7 +240,8 @@ em { font-style: italic; }
 .hero__title {
   font-family: var(--display);
   font-weight: 900;
-  font-size: 13.2vw;
+  /* Unbounded is a wide face: 9.2vw sets the 9-letter word at ~80vw */
+  font-size: 9.2vw;
   line-height: 0.95;
   letter-spacing: -0.015em;
   will-change: transform, opacity;
@@ -831,8 +832,6 @@ em { font-style: italic; }
    ============================================================ */
 
 @media (max-width: 900px) {
-  .hero__title { font-size: 16.5vw; }
-
   .stat {
     grid-template-columns: 1fr;
     gap: 8px;
