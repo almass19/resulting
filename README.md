@@ -9,9 +9,14 @@
 ## Запуск
 
 ```bash
-python3 -m http.server 8000
+npx http-server . -p 8000
 # открыть http://localhost:8000
 ```
+
+Нужен любой статический сервер с поддержкой HTTP Range-запросов
+(`http-server`, `serve`, nginx, GitHub Pages…). `python3 -m http.server`
+не отдаёт Range, из-за чего браузер не может перематывать видео —
+скролл-скраб в hero работать не будет.
 
 ## Видео
 
