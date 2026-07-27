@@ -1,0 +1,46 @@
+name: fetch-assets
+
+# Downloads the three Seedance 2.0 clips from the Higgsfield CDN and commits
+# them into assets/video/. Run manually (workflow_dispatch) whenever the
+# source clips are regenerated. The hero clip is re-encoded with a very short
+# GOP so scroll-scrubbing (currentTime seeks) stays smooth in the browser.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download source clips
+        run: |
+          mkdir -p /tmp/raw
+          curl -fSL --retry 3 -o /tmp/raw/hero.mp4 "https://d8j0ntlcm91z4.cloudfront.net/user_38vAzdtu8JFdW5YDBkWqlqPiGTx/hf_20260727_213724_f4ad9198-e70c-47de-aa41-cfaa02cc754c.mp4"
+          curl -fSL --retry 3 -o /tmp/raw/work.mp4 "https://d8j0ntlcm91z4.cloudfront.net/user_38vAzdtu8JFdW5YDBkWqlqPiGTx/hf_20260727_213730_adf33307-ffa5-4c9c-9fd4-dd7c7d7ccff3.mp4"
+          curl -fSL --retry 3 -o /tmp/raw/team.mp4 "https://d8j0ntlcm91z4.cloudfront.net/user_38vAzdtu8JFdW5YDBkWqlqPiGTx/hf_20260727_213734_150d3b60-dfcd-48cd-94b8-0be96207a2b3.mp4"
+
+      - name: Re-encode for web
+        run: |
+          mkdir -p assets/video
+          # hero: dense keyframes (g=4) so scroll-scrub seeks are instant
+          ffmpeg -y -i /tmp/raw/hero.mp4 -an -c:v libx264 -preset slow -crf 21 \
+            -g 4 -keyint_min 4 -pix_fmt yuv420p -movflags +faststart assets/video/hero.mp4
+          # work / team: ordinary playback encodes
+          ffmpeg -y -i /tmp/raw/work.mp4 -an -c:v libx264 -preset slow -crf 23 \
+            -pix_fmt yuv420p -movflags +faststart assets/video/work.mp4
+          ffmpeg -y -i /tmp/raw/team.mp4 -an -c:v libx264 -preset slow -crf 23 \
+            -pix_fmt yuv420p -movflags +faststart assets/video/team.mp4
+          ls -la assets/video/
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/video/*.mp4
+          git commit -m "Add re-encoded Seedance 2.0 clips (hero scrub GOP=4)"
+          git push
